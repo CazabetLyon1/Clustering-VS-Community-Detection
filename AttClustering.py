@@ -1,17 +1,28 @@
+import numpy as np
+from sklearn.cluster import KMeans,MeanShift,AgglomerativeClustering,AffinityPropagation,DBSCAN,Birch,estimate_bandwidth
+from sklearn import mixture
+
 class attMethods:
 	# ------------------------ loading
 	# -- Type de données:
 	# --
 	# -- [
 	# -- ...
-	# -- (attr1,attr2,attr3,attr4,...)
-	# -- (attr1,attr2,attr3,attr4,...)
+	# -- [attr1,attr2,attr3,attr4,...]
+	# -- [attr1,attr2,attr3,attr4,...]
 	# -- ...
 	# -- ]
 	# --
 	# --------------------------------
 	def loadData(filename):
-		pass
+		attr = []
+		f = open(filename,'r')
+		lines = f.readlines()
+		for line in lines:
+			elm = line.strip().split(',')
+			elm = [float(e) for e in elm]
+			attr.append(elm)
+		return attr;
 
 	# ------------------------ transfrom
 	class transform:
@@ -48,38 +59,84 @@ class attMethods:
 			# --- Normalisation
 			ret = []
 			for sommet,liens in dic.items():
-				ret.append(tuple(liens))
+				ret.append(liens)
 
 			return ret
 
 		def learningTransform(netData,**kwargs):
 			pass
-		
 	# ------------------------ clustering
 	class clustering:
-		def kMeans(clusterCount=None,**kwargs):
-			pass
+		# ---
+		def kMeans(obj,clusterCount=None,**kwargs):
+			labels = KMeans(n_clusters=clusterCount, random_state=170).fit_predict(obj)
+			return attMethods.labelsToCluster(obj,labels,clusterCount)
 
-		def affinityPropagation(clusterCount=None,**kwargs):
-			pass
+		# ---
+		def affinityPropagation(obj,clusterCount=None,**kwargs):
+			af = AffinityPropagation(preference=-50).fit(obj)
+			cluster_centers_indices = af.cluster_centers_indices_
+			labels = af.labels_
+			return attMethods.labelsToCluster(obj,labels,len(cluster_centers_indices))
 
-		def meanShift(clusterCount=None,**kwargs):
-			pass
+		# ---
+		def meanShift(obj,clusterCount=None,**kwargs):
+			quantile = attMethods.getDefaultValue('quantile',0.2,**kwargs)
+			bandwidth = estimate_bandwidth(obj, quantile=quantile, n_samples=int(len(obj)/20))
+			ms = MeanShift(bandwidth=bandwidth, bin_seeding=True)
+			ms.fit(obj)
+			labels = ms.labels_
+			cluster_centers = ms.cluster_centers_
+			return attMethods.labelsToCluster(obj,labels,len(cluster_centers))
 
-		def spectralClustering(clusterCount=None,**kwargs):
-			pass
+		# ---
+		def agglomerative(obj,clusterCount=None,**kwargs):
+			model = AgglomerativeClustering(n_clusters=clusterCount)
+			model.fit(obj)
+			labels = model.labels_
+			return attMethods.labelsToCluster(obj,labels,clusterCount)
 
-		def WHC(clusterCount=None,**kwargs):
-			pass
+		# ---
+		def DBSCAN(obj,clusterCount=None,**kwargs):
+			eps = attMethods.getDefaultValue('eps',0.3,**kwargs)
+			min_samples = attMethods.getDefaultValue('min_samples',0.3,**kwargs)
+			db = DBSCAN(eps=eps, min_samples=min_samples).fit(obj)
+			core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
+			core_samples_mask[db.core_sample_indices_] = True
+			labels = db.labels_
+			n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+			return attMethods.labelsToCluster(obj,labels,n_clusters_)
 
-		def agglomerative(clusterCount=None,**kwargs):
-			pass
+		# ---
+		def gaussianMixture(obj,clusterCount=None,**kwargs):
+			gmm = mixture.GaussianMixture(n_components=clusterCount, covariance_type='full').fit(obj)
+			labels = gmm.predict(obj)
+			return attMethods.labelsToCluster(obj,labels,clusterCount)
 
-		def DBSCAN(clusterCount=None,**kwargs):
-			pass
+		# ---
+		def birch(obj,clusterCount=None,**kwargs):
+			threshold = attMethods.getDefaultValue('threshold',0.5,**kwargs)
+			mdl = Birch(threshold=threshold, n_clusters=clusterCount)
+			mdl.fit(obj)
+			labels = mdl.labels_
+			return attMethods.labelsToCluster(obj,labels)
+		
+	# ------------------------ common methods
+	# ---
+	def getDefaultValue(name,default,**kwargs):
+			if name in kwargs:
+				return  kwargs[name]
+			else:
+				return default
+	# ---
+	def labelsToCluster(obj,labels,nbLabels=None):
+		if nbLabels is None:
+			nbLabels = np.unique(labels).size
+		cluster = []
+		for _ in range(nbLabels):
+			cluster.append([])
+		for i in range(len(labels)):
+			label = labels[i]
+			cluster[label].append(obj[i])
+		return cluster
 
-		def gaussianMixture(clusterCount=None,**kwargs):
-			pass
-
-		def birch(clusterCount=None,**kwargs):
-			pass
