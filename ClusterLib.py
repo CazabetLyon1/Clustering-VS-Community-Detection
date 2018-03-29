@@ -19,11 +19,11 @@ def Net2Att(NetObj,method,**kwargs):
 
 # -----------------------------------------------------------
 # --------------------------------------------- CLUSTERING --
-def cluster_Att(method,clusterCount=None,**kwargs):
-	return method(clusterCount,kwargs)
+def cluster_Att(attObject,method,clusterCount=None,**kwargs):
+	return method(attObject,clusterCount,**kwargs)
 
-def cluster_Net(method,clusterCount=None,**kwargs):
-	return method(clusterCount,kwargs)
+def cluster_Net(netObject,method,clusterCount=None,**kwargs):
+	return method(netObject,clusterCount,**kwargs)
 
 # -----------------------------------------------------------
 # --------------------------------------------- EVALUATION --
