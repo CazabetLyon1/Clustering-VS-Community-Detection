@@ -17,7 +17,11 @@ fonctions de chargement, transformation, clustering et valuation des des donnée
  fonctions spécifiques aux données attribuées
  * **NetClustering.py**
  fonctions spécifiques aux graphes
- 
+
+
+ ## librairies utilisées
+ * igraph (http://igraph.org/python/), installation via pip : `pip install python-igraph`
+
 #### Exécution
 Le fichier _Main.py est ouvert à la modification dans l'optique de jouer avec la librairie
 > $ python3 _Main.py

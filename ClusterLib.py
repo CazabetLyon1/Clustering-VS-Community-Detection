@@ -12,7 +12,8 @@ def loadData_Net(filename):
 # -----------------------------------------------------------
 # ---------------------------------------------- TRANSFORM --
 def Att2Net(AttObj,method,**kwargs):
-	return method(AttObj)
+	print(kwargs)
+	return method(AttObj,**kwargs)
 
 def Net2Att(NetObj,method,**kwargs):
 	return method(NetObj)
