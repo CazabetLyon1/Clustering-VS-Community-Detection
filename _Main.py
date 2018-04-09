@@ -1,14 +1,23 @@
 import ClusterLib
 
-# --- Creation d'un Net object
-netObj = []
-netObj.append((1,2))
-netObj.append((1,3,2))
-netObj.append((1,4))
-netObj.append((2,4,7))
-netObj.append((3,5))
+# --- Load Data
+print('loading...')
+attr = ClusterLib.loadData_Att('data.csv')
 
-# --- Transformation du Net vers Attr
-attObj = ClusterLib.Net2Att(netObj, ClusterLib.attMethods.transform.naiveTransform)
-print(netObj)
-print(attObj)
+# --- Clustering
+print('Clustering...')
+method = ClusterLib.attMethods.clustering.birch
+cluster = ClusterLib.cluster_Att(attr,method,3)
+
+# --- Plotting
+print('Plotting...')
+import matplotlib.pyplot as plt
+plt.ion()
+colors = ['green','red','blue','magenta','yellow']
+colId = 0
+for sett in cluster:
+	x = [elm[0] for elm in sett]
+	y = [elm[1] for elm in sett]
+	plt.scatter(x,y,color=colors[colId])
+	colId += 1
+plt.pause(100)
