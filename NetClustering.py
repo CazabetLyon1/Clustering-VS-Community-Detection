@@ -1,5 +1,6 @@
 import math
-from igraph import *
+from igraph import Graph as ig
+from graph_tool.all import minimize_nested_blockmodel_dl, Graph as gt
 
 
 # ------------------------ distance
@@ -31,7 +32,7 @@ class netMethods:
 	# --
 	# --------------------------------
 	def loadData(filename):
-		graph=Graph.Read_GML(filename)
+		graph = ig.Read_GML(filename)
 		return graph.get_edgelist()
 
 
@@ -69,21 +70,39 @@ class netMethods:
 	# ------------------------ clustering
 	class clustering:
 		def infomap(netObject, clusterCount=None,**kwargs):
-			graph = Graph(0, netObject)
+			graph = ig(0, netObject)
 			partition = graph.community_infomap()
 #			modularity = graph.modularity(partition)
 			return partition
 
 
 		def louvain(netObject, clusterCount=None,**kwargs):
-			graph = Graph(0, netObject)
+			graph = ig(0, netObject)
 			partition = graph.community_multilevel()
 #			modularity = graph.modularity(partition)
 			return partition
 
 
 		def labelPropagation(netObject, clusterCount=None,**kwargs):
-			graph = Graph(0, netObject)
+			graph = ig(0, netObject)
 			partition = graph.community_label_propagation()
 #			modularity = graph.modularity(partition)
+			return partition
+
+
+		def nestedBlockmodel(netObject, clusterCount=None,**kwargs):
+			g = gt()
+			g.set_directed(False)
+			for i in range(len(netObject)) :	#create the vertex.
+				g.add_vertex()
+			g.add_edge_list(netObject)		#create the edges.
+
+			block = minimize_nested_blockmodel_dl(g)
+			nbrBlocks = block.levels[0].get_B()
+			block = block.levels[0].get_blocks()
+			partition = [[] for x in range(nbrBlocks)]	#one list for each community.
+
+			for i in range (0, len(netObject)-1) :
+				partition[block[i]].append(i)
+
 			return partition
