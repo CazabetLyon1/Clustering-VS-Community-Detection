@@ -4,6 +4,7 @@ import ClusterLib
 print('loading...')
 attr = ClusterLib.loadData_Att('data.csv')
 
+net = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=5)
 # --- Clustering
 print('Clustering...')
 method = ClusterLib.attMethods.clustering.birch
