@@ -17,6 +17,21 @@ def euclidianDistance(coordinate1, coordinate2):
 	return distance
 
 
+#transform the partition to correspond to the format of the librairy
+def transformPartition(clusters) :
+	nbrElement = 0
+	for i in range(0,len(clusters)) :
+		nbrElement = nbrElement + len(clusters[i])
+
+	partition = [-1]*nbrElement
+	for i in range(0,len(clusters)) :			#gave for each vertex the number of the community which it belong to.
+		for j in range(0,len(clusters[i])) :
+			partition[clusters[i][j]] = i
+
+	return partition
+
+
+
 class netMethods:
 	# ------------------------ loading
 	# -- Type de données:
@@ -72,30 +87,28 @@ class netMethods:
 		def infomap(netObject, clusterCount=None,**kwargs):
 			graph = ig(0, netObject)
 			partition = graph.community_infomap()
-#			modularity = graph.modularity(partition)
-			return partition
+			return transformPartition(partition)
 
 
 		def louvain(netObject, clusterCount=None,**kwargs):
 			graph = ig(0, netObject)
 			partition = graph.community_multilevel()
-#			modularity = graph.modularity(partition)
-			return partition
+			return transformPartition(partition)
 
 
 		def labelPropagation(netObject, clusterCount=None,**kwargs):
 			graph = ig(0, netObject)
 			partition = graph.community_label_propagation()
-#			modularity = graph.modularity(partition)
-			return partition
+			return transformPartition(partition)
 
 
 		def nestedBlockmodel(netObject, clusterCount=None,**kwargs):
 			g = gt()
 			g.set_directed(False)
-			for i in range(len(netObject)) :	#create the vertex.
+			for i in range(len(netObject)) :	#create the vertexself.#incorect, len(netobject) est le nombre de lien pas de sommet !!!!
 				g.add_vertex()
 			g.add_edge_list(netObject)		#create the edges.
+			print(len(netObject))
 
 			block = minimize_nested_blockmodel_dl(g)
 			nbrBlocks = block.levels[0].get_B()
@@ -105,4 +118,4 @@ class netMethods:
 			for i in range (0, len(netObject)-1) :
 				partition[block[i]].append(i)
 
-			return partition
+			return transformPartition(partition)
