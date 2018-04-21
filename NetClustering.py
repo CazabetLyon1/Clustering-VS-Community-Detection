@@ -87,6 +87,7 @@ class netMethods:
 		def infomap(netObject, clusterCount=None,**kwargs):
 			graph = ig(0, netObject)
 			partition = graph.community_infomap()
+			print(partition)
 			return transformPartition(partition)
 
 

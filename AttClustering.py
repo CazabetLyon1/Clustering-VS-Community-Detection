@@ -70,14 +70,14 @@ class attMethods:
 		# ---
 		def kMeans(obj,clusterCount=None,**kwargs):
 			labels = KMeans(n_clusters=clusterCount, random_state=170).fit_predict(obj)
-			return attMethods.transformPartition(attMethods.labelsToCluster(obj,labels,clusterCount))
+			return attMethods.labelsToCluster(obj,labels,clusterCount)
 
 		# ---
 		def affinityPropagation(obj,clusterCount=None,**kwargs):
 			af = AffinityPropagation(preference=-50).fit(obj)
 			cluster_centers_indices = af.cluster_centers_indices_
 			labels = af.labels_
-			return attMethods.transformPartition(attMethods.labelsToCluster(obj,labels,len(cluster_centers_indices)))
+			return attMethods.labelsToCluster(obj,labels,len(cluster_centers_indices))
 
 		# ---
 		def meanShift(obj,clusterCount=None,**kwargs):
@@ -87,14 +87,14 @@ class attMethods:
 			ms.fit(obj)
 			labels = ms.labels_
 			cluster_centers = ms.cluster_centers_
-			return attMethods.transformPartition(attMethods.labelsToCluster(obj,labels,len(cluster_centers)))
+			return attMethods.labelsToCluster(obj,labels,len(cluster_centers))
 
 		# ---
 		def agglomerative(obj,clusterCount=None,**kwargs):
 			model = AgglomerativeClustering(n_clusters=clusterCount)
 			model.fit(obj)
 			labels = model.labels_
-			return attMethods.transformPartition(attMethods.labelsToCluster(obj,labels,clusterCount))
+			return attMethods.labelsToCluster(obj,labels,clusterCount)
 
 		# ---
 		def DBSCAN(obj,clusterCount=None,**kwargs):
@@ -105,13 +105,13 @@ class attMethods:
 			core_samples_mask[db.core_sample_indices_] = True
 			labels = db.labels_
 			n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-			return attMethods.transformPartition(attMethods.labelsToCluster(obj,labels,n_clusters_))
+			return attMethods.labelsToCluster(obj,labels,n_clusters_)
 
 		# ---
 		def gaussianMixture(obj,clusterCount=None,**kwargs):
 			gmm = mixture.GaussianMixture(n_components=clusterCount, covariance_type='full').fit(obj)
 			labels = gmm.predict(obj)
-			return attMethods.transformPartition(attMethods.labelsToCluster(obj,labels,clusterCount))
+			return attMethods.labelsToCluster(obj,labels,clusterCount)
 
 		# ---
 		def birch(obj,clusterCount=None,**kwargs):
@@ -119,7 +119,7 @@ class attMethods:
 			mdl = Birch(threshold=threshold, n_clusters=clusterCount)
 			mdl.fit(obj)
 			labels = mdl.labels_
-			return attMethods.transformPartition(attMethods.labelsToCluster(obj,labels))
+			return attMethods.labelsToCluster(obj,labels)
 
 	# ------------------------ common methods
 	# ---
@@ -130,6 +130,7 @@ class attMethods:
 				return default
 	# ---
 	def labelsToCluster(obj,labels,nbLabels=None):
+		'''
 		if nbLabels is None:
 			nbLabels = np.unique(labels).size
 		cluster = []
@@ -137,14 +138,6 @@ class attMethods:
 			cluster.append([])
 		for i in range(len(labels)):
 			label = labels[i]
-			cluster[label].append(obj[i])
-		return cluster
-
-	# ---
-	#transform the partition to correspond to the format of the librairy
-	def transformPartition(cluster):
-		partition = []
-		for i in range(0,len(cluster)) :			#gave for each point the number of the cluster which it belong to.
-		    for j in range(0,len(cluster[i])) :
-		        partition.append(i)
-		return partition
+			cluster[label].append(i)
+		'''
+		return labels
