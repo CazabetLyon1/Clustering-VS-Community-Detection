@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.cluster import KMeans,MeanShift,AgglomerativeClustering,AffinityPropagation,DBSCAN,Birch,estimate_bandwidth
 from sklearn import mixture
+import networkx as nx
+from gem.utils import graph_util
 
 class attMethods:
 	# ------------------------ loading
@@ -25,7 +27,25 @@ class attMethods:
 		return attr;
 
 	# ------------------------ transfrom
+	def graphToDiGraph(net):
+		di_graph = nx.DiGraph()
+		di_graph.add_nodes_from(range(len(net)))
+		for node in net:
+			n1 = node[0]
+			n2 = node[1]
+			if len(node)==3:
+				di_graph.add_edge(n1, n2, weight=node[2])
+			else:
+				di_graph.add_edge(n1, n2)
+		return di_graph
+
+	def GEMexport(netData,emb):
+		G = attMethods.graphToDiGraph(netData)
+		Y, t = emb.learn_embedding(graph=G, edge_f=None, is_weighted=True, no_python=True)
+		return Y
+
 	class transform:
+		# ---
 		def naiveTransform(netData,**kwargs):
 
 			# --- Comptage des sommets
@@ -63,8 +83,73 @@ class attMethods:
 
 			return ret
 
-		def learningTransform(netData,**kwargs):
-			pass
+		# ---
+		def graphFactorization(netData,**kwargs):
+			d = kwargs.get('d',2)
+			max_iter = kwargs.get('max_iter',100000)
+			eta = kwargs.get('eta',1*10**-4)
+			regu = kwargs.get('regu',1.0)
+			from gem.embedding.gf import GraphFactorization
+			emb = GraphFactorization(d=d, max_iter=max_iter, eta=eta, regu=regu)
+			return attMethods.GEMexport(netData,emb)
+
+		# ---
+		def HOPE(netData,**kwargs):
+			d = kwargs.get('d',4)
+			beta = kwargs.get('beta',0.01)
+			from gem.embedding.hope import HOPE
+			emb = HOPE(d=d, beta=beta)
+			return attMethods.GEMexport(netData,emb)
+			
+		# ---
+		def laplacianEigenmaps(netData,**kwargs):
+			d = kwargs.get('d',2)
+			from gem.embedding.lap import LaplacianEigenmaps
+			emb = LaplacianEigenmaps(d=d)
+			return attMethods.GEMexport(netData,emb)
+			
+		# ---
+		def locallyLinearEmbedding(netData,**kwargs):
+			d = kwargs.get('d',2)
+			from gem.embedding.lle import LocallyLinearEmbedding
+			emb = LocallyLinearEmbedding(d=d)
+			return attMethods.GEMexport(netData,emb)
+			
+		# ---
+		def node2vec(netData,**kwargs):
+			d = kwargs.get('d',2)
+			max_iter = kwargs.get('max_iter',1)
+			walk_len = kwargs.get('walk_len',80)
+			num_walks = kwargs.get('num_walks',10)
+			con_size = kwargs.get('con_size',10)
+			ret_p = kwargs.get('ret_p',1)
+			inout_p = kwargs.get('inout_p',1)
+			from gem.embedding.node2vec import node2vec
+			emb = node2vec(d=d, max_iter=max_iter, walk_len=walk_len, 
+				num_walks=num_walks, con_size=con_size, ret_p=ret_p, inout_p=1)
+			return attMethods.GEMexport(netData,emb)
+
+		# ---
+		def SDNE(netData,**kwargs):
+			d = kwargs.get('d',2)
+			beta = kwargs.get('beta',5)
+			alpha = kwargs.get('alpha',1e-5)
+			nu1 = kwargs.get('nu1',1e-6)
+			nu2 = kwargs.get('nu2',1e-6)
+			K = kwargs.get('K',3)
+			n_units = kwargs.get('n_units',[50, 15,])
+			rho = kwargs.get('rho',0.3)
+			n_iter = kwargs.get('n_iter',50)
+			xeta = kwargs.get('xeta',0.01)
+			n_batch = kwargs.get('n_batch',500)
+			modelfile = kwargs.get('modelfile',['./intermediate/enc_model.json', './intermediate/dec_model.json'])
+			weightfile = kwargs.get('weightfile',['./intermediate/enc_weights.hdf5', './intermediate/dec_weights.hdf5'])
+			from gem.embedding.sdne import SDNE
+			emb = SDNE(d=d, beta=beta, alpha=alpha, nu1=nu1, nu2=nu2, 
+				K=K,n_units=n_units, rho=rho, n_iter=n_iter, xeta=xeta,
+				n_batch=n_batch,modelfile=modelfile,weightfile=weightfile)
+			return attMethods.GEMexport(netData,emb)
+
 	# ------------------------ clustering
 	class clustering:
 		# ---

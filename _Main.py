@@ -2,11 +2,15 @@ import ClusterLib
 
 # --- Load Data
 print('loading...')
-attr = ClusterLib.loadData_Att('data.csv')
+attr1 = ClusterLib.loadData_Att('data.csv')
+net = ClusterLib.loadData_Net('karate.gml')
+print('net -> att')
+attr = ClusterLib.Net2Att(net,ClusterLib.attMethods.transform.laplacianEigenmaps)
+print(attr)
 
 # --- Clustering
 print('Clustering...')
-method = ClusterLib.attMethods.clustering.birch
+method = ClusterLib.attMethods.clustering.kMeans
 cluster = ClusterLib.cluster_Att(attr,method,3)
 
 print(cluster)
