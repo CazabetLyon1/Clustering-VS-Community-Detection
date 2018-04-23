@@ -8,7 +8,8 @@ print('net -> att')
 attr = ClusterLib.Net2Att(net,ClusterLib.attMethods.transform.laplacianEigenmaps)
 print(attr)
 
-# --- Clusteringgit sta
+net = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=5)
+# --- Clustering
 print('Clustering...')
 method = ClusterLib.attMethods.clustering.kMeans
 cluster = ClusterLib.cluster_Att(attr,method,3)
