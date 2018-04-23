@@ -21,6 +21,7 @@ fonctions de chargement, transformation, clustering et valuation des des donnée
 
  ## librairies utilisées
  * igraph (http://igraph.org/python/), installation via pip : `pip install python-igraph`
+ * GEM (https://github.com/palash1992/GEM), installation via pip : `sudo python setup.py install` dans la librairie clonée
 
 #### Exécution
 Le fichier _Main.py est ouvert à la modification dans l'optique de jouer avec la librairie

@@ -1,5 +1,6 @@
 from AttClustering import attMethods
 from NetClustering import netMethods
+import Metric
 
 # -----------------------------------------------------------
 # --------------------------------------------------- LOAD --
@@ -28,5 +29,5 @@ def cluster_Net(netObject,method,clusterCount=None,**kwargs):
 
 # -----------------------------------------------------------
 # --------------------------------------------- EVALUATION --
-def evaluateClustering(terClusters,genClusters,method,**kwargs):
-	return method(terClusters,genClusters,kwargs)
+def evaluateClustering(trueClusters,predClusters,method,**kwargs):
+	return method(trueClusters,predClusters,**kwargs)
