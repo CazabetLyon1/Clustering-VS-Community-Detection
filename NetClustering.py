@@ -103,20 +103,23 @@ class netMethods:
 			return transformPartition(partition)
 
 
+
 		def nestedBlockmodel(netObject, clusterCount=None,**kwargs):
 			g = gt()
 			g.set_directed(False)
-			for i in range(len(netObject)) :	#create the vertexself.#incorect, len(netobject) est le nombre de lien pas de sommet !!!!
+			#get the number of node in netObject (note : the nuber of node is consider to be equal to the id of the biggest node with a vertex). add 1 because netObject count the node from 0.
+			nbrNode = max([item for sublist in netObject for item in sublist])+1
+			for i in range(nbrNode) :
 				g.add_vertex()
 			g.add_edge_list(netObject)		#create the edges.
-			print(len(netObject))
 
 			block = minimize_nested_blockmodel_dl(g)
 			nbrBlocks = block.levels[0].get_B()
 			block = block.levels[0].get_blocks()
+
 			partition = [[] for x in range(nbrBlocks)]	#one list for each community.
 
-			for i in range (0, len(netObject)-1) :
+			for i in range (0, nbrNode) :
 				partition[block[i]].append(i)
 
 			return transformPartition(partition)
