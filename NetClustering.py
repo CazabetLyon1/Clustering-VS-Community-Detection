@@ -8,12 +8,13 @@ import pickle
 # ------------------------ distance
 def euclidianDistance(coordinate1, coordinate2):
 	# each coordinate should be of the same dimension
-	if(len(coordinate1) != len(coordinate2)):
+	size = len(coordinate1)
+	if(size != len(coordinate2)):
 		raise ValueError('error : the coordinate of the two points should be of the same dimension')
 
 	sumOfSquare = 0
-	for i,j in zip(coordinate1,coordinate2):
-		sumOfSquare = sumOfSquare + ((abs(i) - abs(j)) ** 2)
+	for i in range(size):
+		sumOfSquare += ((abs(coordinate1[i]) - abs(coordinate2[i])) ** 2)
 
 	distance = math.sqrt(sumOfSquare)
 	return distance
@@ -56,7 +57,7 @@ class netMethods:
 	# ------------------------ transfrom
 	class transform:
 
-		#k nearest neightboors (! O(n²))
+		#k nearest neightboors
 		def naiveTransform(netData,**kwargs):
 			k = kwargs.get('k', None)	# valeur par défault à definir, None ne peut pas permettre de construire un graphe
 			nbrCore = kwargs.get('Core', 6)
@@ -78,10 +79,9 @@ class netMethods:
 					while j < k :
 						del distance[i]
 						nearest = min(distance, key=distance.get)
+						print(str(i) + " -> " + str(nearest))
 						del distance[nearest]	#if k > 1 we don't want to get always the same point.
-						if nearest < i :	#the other if is impossible if nearest < i and this test is faster.
-							if([nearest, i] not in graph) :	#as the graph is non-oriented we don't want to add 2 time the same edge.
-								graph.append([i, nearest])
+						graph.append([i, nearest])
 						j += 1
 
 				return graph
@@ -111,9 +111,10 @@ class netMethods:
 
 			for i in range(nbrCore):
 				finished = os.waitpid(pid[i], 0)
+				print(str(i) + "terminé !!!!!")
 				graph += pickle.loads(os.read(r[i], 250000000))
 
-			return graph
+			return graph	#the final graph can contain some edge in both direction.
 
 
 
