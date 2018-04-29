@@ -76,10 +76,9 @@ class netMethods:
 
 					#construction of the graph :
 					j = 0
+					del distance[i]
 					while j < k :
-						del distance[i]
 						nearest = min(distance, key=distance.get)
-						print(str(i) + " -> " + str(nearest))
 						del distance[nearest]	#if k > 1 we don't want to get always the same point.
 						graph.append([i, nearest])
 						j += 1
@@ -111,7 +110,6 @@ class netMethods:
 
 			for i in range(nbrCore):
 				finished = os.waitpid(pid[i], 0)
-				print(str(i) + "terminé !!!!!")
 				graph += pickle.loads(os.read(r[i], 250000000))
 
 			return graph	#the final graph can contain some edge in both direction.
@@ -123,7 +121,6 @@ class netMethods:
 		def infomap(netObject, clusterCount=None,**kwargs):
 			graph = ig(0, netObject)
 			partition = graph.community_infomap()
-			print(partition)
 			return transformPartition(partition)
 
 
