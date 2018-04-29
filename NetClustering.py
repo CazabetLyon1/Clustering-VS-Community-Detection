@@ -1,6 +1,7 @@
 import math
 from igraph import Graph as ig
 from graph_tool.all import minimize_nested_blockmodel_dl, Graph as gt
+import os
 
 
 # ------------------------ distance
@@ -57,23 +58,24 @@ class netMethods:
 		#k nearest neightboors
 		def naiveTransform(netData,**kwargs):
 			k = kwargs.get('k', None)	# valeur par défault à definir, None ne peut pas permettre de construire un graphe
+			multiCore = kwargs.get('multiCore', True)
 			nbrPoint = len(netData)
-			distance = [dict() for x in range(nbrPoint)]	#create one dictionary for each point.
+			distance = dict()
 			graph = []
 
-			#calcul of all the distance
-			for i, vector in enumerate(netData) :
-				j = i + 1
-				while j < nbrPoint :#if j < i the entry is already in the dictionnary so it's useless to calculate it again.
-					distance[i][j] = euclidianDistance(netData[i], netData[j])
-					distance[j][i] = distance[i][j]
+			for i in range(nbrPoint) :
+				j = 0
+
+				#calcul of all the distances :
+				while j < nbrPoint :
+					distance[j] = euclidianDistance(netData[i], netData[j])
 					j += 1
 
-				#construction of the graph.
+				#construction of the graph :
 				j = 0
 				while j < k :
-					nearest = min(distance[i], key=distance[i].get)
-					del distance[i][nearest]
+					nearest = min(distance)
+					del distance[nearest]	#if k > 1 we don't want to get always the same point.
 					if([nearest, i] not in graph) :	#as the graph is non-oriented we don't want to add 2 time the same edge.
 						graph.append([i, nearest])
 					j += 1
