@@ -13,7 +13,6 @@ def loadData_Net(filename):
 # -----------------------------------------------------------
 # ---------------------------------------------- TRANSFORM --
 def Att2Net(AttObj,method,**kwargs):
-	print(kwargs)
 	return method(AttObj,**kwargs)
 
 def Net2Att(NetObj,method,**kwargs):
