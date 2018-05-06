@@ -14,10 +14,9 @@ def euclidianDistance(coordinate1, coordinate2):
 
 	sumOfSquare = 0
 	for i in range(size):
-		sumOfSquare += ((abs(coordinate1[i]) - abs(coordinate2[i])) ** 2)
+		sumOfSquare = sumOfSquare + ((abs(coordinate1[i]) - abs(coordinate2[i])) ** 2)
 
-	distance = math.sqrt(sumOfSquare)
-	return distance
+	return math.sqrt(sumOfSquare)
 
 
 #transform the partition to correspond to the format of the librairy
@@ -59,13 +58,8 @@ class netMethods:
 
 		#k nearest neightboors
 		def naiveTransform(netData,**kwargs):
-			k = kwargs.get('k', None)	# valeur par défault à definir, None ne peut pas permettre de construire un graphe
-			nbrCore = kwargs.get('Core', 6)
-			nbrPoint = len(netData)
-			nbrPointCore = nbrPoint//nbrCore
-			distance = dict()
-			graph = []
-
+			
+			#parralelisable part
 			def partialTransform(debut, fin) :
 				for i in range(debut, fin) :
 					j = 0
@@ -85,14 +79,20 @@ class netMethods:
 
 				return graph
 
-			#pipes
-			r = [-1,-1]*nbrCore
-			w = [-1,-1]*nbrCore
+
+			k = kwargs.get('k', 1)	# valeur par défault à definir.
+			nbrCore = kwargs.get('Core', 1)
+			nbrPoint = len(netData)
+			nbrPointCore = nbrPoint//nbrCore
+			distance = dict()
+			graph = []
+
+			# files
+			import tempfile
+			tmp = [tempfile.TemporaryFile() for _ in range(nbrCore)]
 			pid = [-1]*nbrCore
 
 			for i in range(nbrCore):
-				r[i], w[i] = os.pipe()
-
 				try:
 				    pid[i] = os.fork()
 				except OSError:
@@ -104,13 +104,17 @@ class netMethods:
 						g = partialTransform(i*nbrPointCore, (i+1)*nbrPointCore)
 					else :
 						g = partialTransform(i*nbrPointCore, nbrPoint)	#to be sure that there is not a forgoten point.
-					os.write(w[i], pickle.dumps(g))
+					pickle.dump(g, tmp[i])
+					tmp[i].close()
 					exit()
 
 
 			for i in range(nbrCore):
 				finished = os.waitpid(pid[i], 0)
-				graph += pickle.loads(os.read(r[i], 250000000))
+				# seek to get updated file content
+				tmp[i].seek(0,2)
+				tmp[i].seek(0)
+				graph += pickle.load(tmp[i])
 
 			return graph	#the final graph can contain some edge in both direction.
 

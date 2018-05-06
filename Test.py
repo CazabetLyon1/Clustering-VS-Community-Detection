@@ -23,10 +23,14 @@ def testLoadingNet(file, nbrNodeExpected, nbrEdgeExpected) :
 
 
 #--------------- test transformations :
-def testAttToNet(attr, k, netExpected) :
-    net = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=k)
-    if(net != netExpected) :
-        print("erreur, la transformation attToNet à un probléme. graphe obtenue :\n" + str(net) + "\n graphe attendue :\n" + str(netExpected))
+def testAttToNet(attr, k, core, netExpected) :
+    net = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=k, Core=core)
+    correct = False
+    for netw_i in netExpected :
+        if(net == netw_i) :
+            correct = True
+    if (not correct) :
+        print("erreur, la transformation attToNet à un probléme. graphe obtenue :\n" + str(net) + ".\n on attendais un de ces graphe(s) :\n" + str(netExpected) + ". nombre de threads : " + str(core))
 
 
 def testNetToAtt(method, net, nbrPointsExpected, nbrDimensionExpected) :
@@ -90,56 +94,61 @@ for i in range(len(netw_file)) :
 
 
 #test transformation attToNet :
-att = [[0,1,0], [0,0,0], [0,7,9], [9,1,1], [8,8,8], [0,0,1]]
-res_k1 = [[0,1],[1,0],[2,4],[3,0],[4,2],[5,1]]
-res_k2 = [[0,1],[0,5],[1,0],[1,5],[2,4],[2,5],[3,0],[3,5],[4,2],[4,3],[5,1],[5,0]]
-res_k3 = [[0,1],[0,5],[0,3],[1,0],[1,5],[1,3],[2,4],[2,5],[2,0],[3,0],[3,5],[3,1],[4,2],[4,3],[4,0],[5,1],[5,0],[5,3]]
-testAttToNet(att, 1, res_k1)
-testAttToNet(att, 2, res_k2)
-testAttToNet(att, 3, res_k3)
+for nbrCore in range(1,12) :  #on fait les tests avec different nbrCore pour testé le mustiprocessing
+    print(nbrCore)
+    att = [[0,1,0], [0,0,0], [0,7,9], [9,1,1], [8,8,8], [0,0,1]]
+    res_k1 = [[[0,1],[1,0],[2,4],[3,0],[4,2],[5,1]], [[0,1],[1,5],[2,4],[3,0],[4,2],[5,1]]] #as the order isn't important there can be more than one good answer.
+    res_k2 = [[[0,1],[0,5],[1,0],[1,5],[2,4],[2,5],[3,0],[3,5],[4,2],[4,3],[5,1],[5,0]]]
+    res_k3 = [[[0,1],[0,5],[0,3],[1,0],[1,5],[1,3],[2,4],[2,5],[2,0],[3,0],[3,5],[3,1],[4,2],[4,3],[4,0],[5,1],[5,0],[5,3]]]
+    testAttToNet(att, 1, nbrCore, res_k1)
+    testAttToNet(att, 2, nbrCore, res_k2)
+    testAttToNet(att, 3, nbrCore, res_k3)
 
-att = [[0,0],[0,0],[1,1],[1,1],[9,9]]
-res_k1 = [[0,1],[1,0],[2,3],[3,2],[4,2]]
-res_k2 = [[0, 1], [0, 2], [1, 0], [1, 3], [2, 3], [2, 0], [3, 2], [3, 1], [4, 2], [4, 3]]
-res_k3 = [[0, 1], [0, 2],[0,3], [1, 0],[1,2], [1, 3], [2, 3], [2, 0],[2,1], [3, 2],[3,0], [3, 1], [4, 2], [4, 3], [4,0]]
-testAttToNet(att, 1, res_k1)
-testAttToNet(att, 2, res_k2)
-testAttToNet(att, 3, res_k3)
+    att = [[0,0],[0,0],[1,1],[1,1],[9,9]]
+    res_k1 = [[[0,1],[1,0],[2,3],[3,2],[4,2]]]
+    res_k2 = [[[0,1],[0,2],[1,0],[1,3],[2,3],[2,0],[3,2],[3,1],[4,2],[4,3]], [[0,1],[0,2],[1,0],[1,2],[2,3],[2,0],[3,2],[3,1],[4,2],[4,3]], [[0,1],[0,2],[1,0],[1,2],[2,3],[2,0],[3,2],[3,0],[4,2],[4,3]]]
+    res_k3 = [[[0,1],[0,2],[0,3],[1,0],[1,2],[1,3],[2,3],[2,0],[2,1],[3,2],[3,0],[3,1],[4,2],[4,3],[4,0]]]
+    testAttToNet(att, 1, nbrCore, res_k1)
+    testAttToNet(att, 2, nbrCore, res_k2)
+    testAttToNet(att, 3, nbrCore, res_k3)
 
-attr = ClusterLib.loadData_Att(attr_file[3] + ".csv")
-net1 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=1)
-net2 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=2)
-net3 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=3)
-net4 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=4)
-net5 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=5)
-net6 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=6)
+    attr = ClusterLib.loadData_Att(attr_file[3] + ".csv")
+    net1 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=1, Core=nbrCore)
+    net2 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=2, Core=nbrCore)
+    net3 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=3, Core=nbrCore)
 
-if(len(net1) != 1024) :
-    print("le nombre d'arrete ne correspond pas à ce qui est attendue(6144). obetnue " + str(len(net1)))
-if(1023 != max([item for sublist in net1 for item in sublist])) :
-    print("le nombre de noeuds ne correspond pas à ce qui est attendue.")
+    net4 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=4, Core=nbrCore)
 
-if(len(net2) != 2048) :
-    print("le nombre d'arrete ne correspond pas à ce qui est attendue(6144). obetnue " + str(len(net2)))
-if(1023 != max([item for sublist in net1 for item in sublist])) :
-    print("le nombre de noeuds ne correspond pas à ce qui est attendue.")
+    net5 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=5, Core=nbrCore)
 
-if(len(net3) != 3072) :
-    print("le nombre d'arrete ne correspond pas à ce qui est attendue(6144). obetnue " + str(len(net3)))
-if(1023 != max([item for sublist in net1 for item in sublist])) :
-    print("le nombre de noeuds ne correspond pas à ce qui est attendue.")
+    net6 = ClusterLib.Att2Net(attr,ClusterLib.netMethods.transform.naiveTransform,k=6, Core=nbrCore)
 
-if(len(net4) != 4096) :
-    print("le nombre d'arrete ne correspond pas à ce qui est attendue(6144). obetnue " + str(len(net4)))
-if(1023 != max([item for sublist in net1 for item in sublist])) :
-    print("le nombre de noeuds ne correspond pas à ce qui est attendue.")
+    if(len(net1) != 1024) :
+        print("le nombre d'arrete ne correspond pas à ce qui est attendue(1024). obetnue " + str(len(net1)) + " avec " + str(nbrCore) + "threads")
+    if(1023 != max([item for sublist in net1 for item in sublist])) :
+        print("le nombre de noeuds ne correspond pas à ce qui est attendue." + " avec " + str(nbrCore) + "threads")
 
-if(len(net5) != 5120) :
-    print("le nombre d'arrete ne correspond pas à ce qui est attendue(6144). obetnue " + str(len(net5)))
-if(1023 != max([item for sublist in net1 for item in sublist])) :
-    print("le nombre de noeuds ne correspond pas à ce qui est attendue.")
+    if(len(net2) != 2048) :
+        print("le nombre d'arrete ne correspond pas à ce qui est attendue(2048). obetnue " + str(len(net2)) + " avec " + str(nbrCore) + "threads")
+    if(1023 != max([item for sublist in net1 for item in sublist])) :
+        print("le nombre de noeuds ne correspond pas à ce qui est attendue." + " avec " + str(nbrCore) + "threads")
 
-if(len(net6) != 6144) :
-    print("le nombre d'arrete ne correspond pas à ce qui est attendue(6144). obetnue " + str(len(net6)))
-if(1023 != max([item for sublist in net1 for item in sublist])) :
-    print("le nombre de noeuds ne correspond pas à ce qui est attendue.")
+    if(len(net3) != 3072) :
+        print("le nombre d'arrete ne correspond pas à ce qui est attendue(3072). obetnue " + str(len(net3)) + " avec " + str(nbrCore) + "threads")
+    if(1023 != max([item for sublist in net1 for item in sublist])) :
+        print("le nombre de noeuds ne correspond pas à ce qui est attendue." + " avec " + str(nbrCore) + "threads")
+
+    if(len(net4) != 4096) :
+        print("le nombre d'arrete ne correspond pas à ce qui est attendue(4096). obetnue " + str(len(net4)) + " avec " + str(nbrCore) + "threads")
+    if(1023 != max([item for sublist in net1 for item in sublist])) :
+        print("le nombre de noeuds ne correspond pas à ce qui est attendue." + " avec " + str(nbrCore) + "threads")
+
+    if(len(net5) != 5120) :
+        print("le nombre d'arrete ne correspond pas à ce qui est attendue(5120). obetnue " + str(len(net5)) + " avec " + str(nbrCore) + "threads")
+    if(1023 != max([item for sublist in net1 for item in sublist])) :
+        print("le nombre de noeuds ne correspond pas à ce qui est attendue." + " avec " + str(nbrCore) + "threads")
+
+    if(len(net6) != 6144) :
+        print("le nombre d'arrete ne correspond pas à ce qui est attendue(6144). obetnue " + str(len(net6)) + " avec " + str(nbrCore) + "threads")
+    if(1023 != max([item for sublist in net1 for item in sublist])) :
+        print("le nombre de noeuds ne correspond pas à ce qui est attendue." + " avec " + str(nbrCore) + "threads")
