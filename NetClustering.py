@@ -140,6 +140,7 @@ class netMethods:
 			return transformPartition(partition)
 
 
+
 		def nestedBlockmodel(netObject, clusterCount=None,**kwargs):
 			g = gt()
 			g.set_directed(False)
