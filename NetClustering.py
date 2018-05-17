@@ -1,8 +1,11 @@
 import math
 from igraph import Graph as ig
-from graph_tool.all import minimize_nested_blockmodel_dl, Graph as gt
 import os
 import pickle
+try:
+	from graph_tool.all import minimize_nested_blockmodel_dl, Graph as gt
+except ImportError:
+    raise ImportError("you won't be able to use nestedBlockmodel clustering without graph.tool (the rest of the librairy can still be used).")
 
 
 # ------------------------ distance
@@ -48,17 +51,20 @@ class netMethods:
 	# -- ]
 	# --
 	# --------------------------------
+	#load the edge list of the graph (without weight).
 	def loadData(filename):
 		graph = ig.Read_GML(filename)
 		return graph.get_edgelist()
 
 
 	# ------------------------ transfrom
+	#contain the method to transform the data from attribute data to graph.
 	class transform:
 
 		#k nearest neightboors
+		#return a non-oriented, non-weighted graph which can contain some edge twice (from A to B and from B to A)
 		def naiveTransform(netData,**kwargs):
-			
+
 			#parralelisable part
 			def partialTransform(debut, fin) :
 				for i in range(debut, fin) :
@@ -121,6 +127,7 @@ class netMethods:
 
 
 	# ------------------------ clustering
+	#contain the community detection method.
 	class clustering:
 		def infomap(netObject, clusterCount=None,**kwargs):
 			graph = ig(0, netObject)
