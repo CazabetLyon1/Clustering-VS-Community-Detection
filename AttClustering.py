@@ -29,7 +29,7 @@ class attMethods:
 	# ------------------------ transfrom
 	def graphToDiGraph(net):
 		di_graph = nx.DiGraph()
-		di_graph.add_nodes_from(range(len(net)))
+		di_graph.add_nodes_from(range(max([item for sublist in net for item in sublist])+1))
 		for node in net:
 			n1 = node[0]
 			n2 = node[1]
@@ -100,21 +100,21 @@ class attMethods:
 			from gem.embedding.hope import HOPE
 			emb = HOPE(d=d, beta=beta)
 			return attMethods.GEMexport(netData,emb)
-			
+
 		# ---
 		def laplacianEigenmaps(netData,**kwargs):
 			d = kwargs.get('d',2)
 			from gem.embedding.lap import LaplacianEigenmaps
 			emb = LaplacianEigenmaps(d=d)
 			return attMethods.GEMexport(netData,emb)
-			
+
 		# ---
 		def locallyLinearEmbedding(netData,**kwargs):
 			d = kwargs.get('d',2)
 			from gem.embedding.lle import LocallyLinearEmbedding
 			emb = LocallyLinearEmbedding(d=d)
 			return attMethods.GEMexport(netData,emb)
-			
+
 		# ---
 		def node2vec(netData,**kwargs):
 			d = kwargs.get('d',2)
@@ -125,7 +125,7 @@ class attMethods:
 			ret_p = kwargs.get('ret_p',1)
 			inout_p = kwargs.get('inout_p',1)
 			from gem.embedding.node2vec import node2vec
-			emb = node2vec(d=d, max_iter=max_iter, walk_len=walk_len, 
+			emb = node2vec(d=d, max_iter=max_iter, walk_len=walk_len,
 				num_walks=num_walks, con_size=con_size, ret_p=ret_p, inout_p=1)
 			return attMethods.GEMexport(netData,emb)
 
@@ -145,7 +145,7 @@ class attMethods:
 			modelfile = kwargs.get('modelfile',['./intermediate/enc_model.json', './intermediate/dec_model.json'])
 			weightfile = kwargs.get('weightfile',['./intermediate/enc_weights.hdf5', './intermediate/dec_weights.hdf5'])
 			from gem.embedding.sdne import SDNE
-			emb = SDNE(d=d, beta=beta, alpha=alpha, nu1=nu1, nu2=nu2, 
+			emb = SDNE(d=d, beta=beta, alpha=alpha, nu1=nu1, nu2=nu2,
 				K=K,n_units=n_units, rho=rho, n_iter=n_iter, xeta=xeta,
 				n_batch=n_batch,modelfile=modelfile,weightfile=weightfile)
 			return attMethods.GEMexport(netData,emb)

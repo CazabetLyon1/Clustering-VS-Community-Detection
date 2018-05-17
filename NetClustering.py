@@ -1,20 +1,25 @@
 import math
 from igraph import Graph as ig
-from graph_tool.all import minimize_nested_blockmodel_dl, Graph as gt
+import os
+import pickle
+try:
+	from graph_tool.all import minimize_nested_blockmodel_dl, Graph as gt
+except ImportError:
+    raise ImportError("you won't be able to use nestedBlockmodel clustering without graph.tool (the rest of the librairy can still be used).")
 
 
 # ------------------------ distance
 def euclidianDistance(coordinate1, coordinate2):
 	# each coordinate should be of the same dimension
-	if(len(coordinate1) != len(coordinate2)):
+	size = len(coordinate1)
+	if(size != len(coordinate2)):
 		raise ValueError('error : the coordinate of the two points should be of the same dimension')
 
 	sumOfSquare = 0
-	for i,j in zip(coordinate1,coordinate2):
-		sumOfSquare = sumOfSquare + ((abs(i) - abs(j)) ** 2)
+	for i in range(size):
+		sumOfSquare = sumOfSquare + ((abs(coordinate1[i]) - abs(coordinate2[i])) ** 2)
 
-	distance = math.sqrt(sumOfSquare)
-	return distance
+	return math.sqrt(sumOfSquare)
 
 
 #transform the partition to correspond to the format of the librairy
@@ -46,48 +51,87 @@ class netMethods:
 	# -- ]
 	# --
 	# --------------------------------
+	#load the edge list of the graph (without weight).
 	def loadData(filename):
 		graph = ig.Read_GML(filename)
 		return graph.get_edgelist()
 
 
 	# ------------------------ transfrom
+	#contain the method to transform the data from attribute data to graph.
 	class transform:
 
 		#k nearest neightboors
+		#return a non-oriented, non-weighted graph which can contain some edge twice (from A to B and from B to A)
 		def naiveTransform(netData,**kwargs):
-			k = kwargs.get('k', None)	# valeur par défault à definir, None ne peut pas permettre de construire un graphe
+
+			#parralelisable part
+			def partialTransform(debut, fin) :
+				for i in range(debut, fin) :
+					j = 0
+					#calcul of all the distances :
+					while j < nbrPoint :
+						distance[j] = euclidianDistance(netData[i], netData[j])
+						j += 1
+
+					#construction of the graph :
+					j = 0
+					del distance[i]
+					while j < k :
+						nearest = min(distance, key=distance.get)
+						del distance[nearest]	#if k > 1 we don't want to get always the same point.
+						graph.append([i, nearest])
+						j += 1
+
+				return graph
+
+
+			k = kwargs.get('k', 1)	# valeur par défault à definir.
+			nbrCore = kwargs.get('Core', 1)
 			nbrPoint = len(netData)
-			distance = [dict() for x in range(nbrPoint)]	#create one dictionary for each point.
+			nbrPointCore = nbrPoint//nbrCore
+			distance = dict()
 			graph = []
 
-			#calcul of all the distance
-			for i, vector in enumerate(netData) :
-				j = i + 1
-				while j < nbrPoint :#if j < i the entry is already in the dictionnary so it's useless to calculate it again.
-					distance[i][j] = euclidianDistance(netData[i], netData[j])
-					distance[j][i] = distance[i][j]
-					j += 1
+			# files
+			import tempfile
+			tmp = [tempfile.TemporaryFile() for _ in range(nbrCore)]
+			pid = [-1]*nbrCore
 
-				#construction of the graph.
-				j = 0
-				while j < k :
-					nearest = min(distance[i], key=distance[i].get)
-					del distance[i][nearest]
-					if([nearest, i] not in graph) :	#as the graph is non-oriented we don't want to add 2 time the same edge.
-						graph.append([i, nearest])
-					j += 1
+			for i in range(nbrCore):
+				try:
+				    pid[i] = os.fork()
+				except OSError:
+				    exit("Could not create a child process\n")
 
-			return graph
+
+				if pid[i] == 0:
+					if i < nbrCore-1 :
+						g = partialTransform(i*nbrPointCore, (i+1)*nbrPointCore)
+					else :
+						g = partialTransform(i*nbrPointCore, nbrPoint)	#to be sure that there is not a forgoten point.
+					pickle.dump(g, tmp[i])
+					tmp[i].close()
+					exit()
+
+
+			for i in range(nbrCore):
+				finished = os.waitpid(pid[i], 0)
+				# seek to get updated file content
+				tmp[i].seek(0,2)
+				tmp[i].seek(0)
+				graph += pickle.load(tmp[i])
+
+			return graph	#the final graph can contain some edge in both direction.
 
 
 
 	# ------------------------ clustering
+	#contain the community detection method.
 	class clustering:
 		def infomap(netObject, clusterCount=None,**kwargs):
 			graph = ig(0, netObject)
 			partition = graph.community_infomap()
-			print(partition)
 			return transformPartition(partition)
 
 
